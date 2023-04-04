@@ -8,10 +8,12 @@
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='css/styles.css') }}"
+      defer
     />
     <script
       src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAFAaK4clLIBPv8NEmxU5zQo-VRo1cCL1c&callback=initMap"
       async
+      defer
     ></script>
     {% block extra_head %}{% endblock %}
   </head>
