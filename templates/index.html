@@ -1,0 +1,32 @@
+{% extends "base_template.html" %} {% block content %}
+<ul class="location-list">
+  {% for location in locations %}
+  <li class="location-item">
+    <div class="location-item-section">
+      <div>
+        <h2>{{ location.name }}</h2>
+        <p>{{ location.address }}</p>
+        <p>
+          {% for i in range(location.rating) %}
+          <span class="star">★</span>
+          {% endfor %} {% for i in range(5 - location.rating) %}
+          <span>☆</span>
+          {% endfor %}
+        </p>
+      </div>
+      <div>
+        <img
+          src="{{ url_for('static', filename='uploads/' + location.image) }}"
+          alt="{{ location.name }}"
+          height="250"
+        />
+      </div>
+    </div>
+    <a href="{{ url_for('location_details', location_id=location.id) }}"
+      >Szczegóły</a
+    >
+  </li>
+  {% endfor %}
+</ul>
+<p><a href="{{ url_for('add_location') }}">Dodaj nową atrakcję</a></p>
+{% endblock %}
