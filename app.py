@@ -19,6 +19,8 @@ app.secret_key = os.environ.get('SECRET_KEY')
 app.config['SQLALCHEMY_DATABASE_URI'] =  os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+GOOGLE_MAPS_API_KEY = os.environ.get('GOOGLE_MAPS_API_KEY')
+
 db = SQLAlchemy(app)
 
 def upload_to_s3(file, bucket_name, filename):
@@ -83,12 +85,12 @@ def add_location():
 
         return redirect(url_for('index'))
 
-    return render_template('add_location.html')
+    return render_template('add_location.html', GOOGLE_MAPS_API_KEY=GOOGLE_MAPS_API_KEY)
 
 @app.route('/location_details/<int:location_id>')
 def location_details(location_id):
     location = Location.query.get_or_404(location_id)
-    return render_template('location_details.html', location=location, location_id=location_id)
+    return render_template('location_details.html', location=location, location_id=location_id,GOOGLE_MAPS_API_KEY=GOOGLE_MAPS_API_KEY)
 
 @app.route('/edit_location/<int:location_id>', methods=['GET', 'POST'])
 def edit_location(location_id):
@@ -105,7 +107,7 @@ def edit_location(location_id):
         image_url = upload_to_s3(image, os.environ.get('BUCKET_NAME'), filename)
         if not image_url:
             flash('An error occurred while uploading the image to S3.', 'error')
-            return render_template('edit_location.html', location=location, location_id=location_id)
+            return render_template('edit_location.html', location=location, location_id=location_id,GOOGLE_MAPS_API_KEY=GOOGLE_MAPS_API_KEY)
 
 
         location.name = name
