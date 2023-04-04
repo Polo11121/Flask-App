@@ -2,15 +2,39 @@ from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
 import os
+import boto3
+from botocore.exceptions import NoCredentialsError
+import secrets
+import string
+
+def random_string(length):
+    characters = string.ascii_letters + string.digits
+    return ''.join(secrets.choice(characters) for _ in range(length))
+
+s3 = boto3.client('s3', aws_access_key_id=os.environ.get('ACCESS_KEY'), aws_secret_access_key=os.environ.get('SECRET_ACCESS_KEY'))
 
 app = Flask(__name__)
-app.config['UPLOAD_FOLDER'] = 'static/uploads/'
+app.config['S3_BUCKET_NAME'] = os.environ.get('BUCKET_NAME')
 app.secret_key = 'your_secret_key'
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+app.config['SQLALCHEMY_DATABASE_URI'] =  os.environ.get('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
+def upload_to_s3(file, bucket_name, filename):
+    imageName =  f"{filename}-{random_string(10)}"
+    print(imageName)
+
+    try:
+        s3.upload_fileobj(file, bucket_name, imageName)
+        url = f"https://{bucket_name}.s3.amazonaws.com/{imageName}"
+        return url
+    except NoCredentialsError:
+        print("Error: Invalid AWS credentials")
+        return None
+    except Exception as e:
+        print("Error: ", e)
+        return None
 
 class Location(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -47,11 +71,13 @@ def add_location():
         filename = secure_filename(image.filename)
         latitude = float(request.form['latitude'])
         longitude = float(request.form['longitude'])
+        image_url = upload_to_s3(image, 'date-app', filename)
 
-        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-        image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        if not image_url:
+            flash('An error occurred while uploading the image to S3.', 'error')
+            return render_template('add_location.html')
 
-        new_location = Location(name=name, address=address, rating=rating, image=filename, latitude=latitude, longitude=longitude)
+        new_location = Location(name=name, address=address, rating=rating, image=image_url, latitude=latitude, longitude=longitude)
         db.session.add(new_location)
         db.session.commit()
 
@@ -72,15 +98,20 @@ def edit_location(location_id):
         address = request.form['address']
         rating = request.form['rating']
         image = request.files['image']
-        filename = secure_filename(image.filename)
-        image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         latitude = float(request.form['latitude'])
         longitude = float(request.form['longitude'])
+        filename = secure_filename(image.filename)
+
+        image_url = upload_to_s3(image, os.environ.get('BUCKET_NAME'), filename)
+        if not image_url:
+            flash('An error occurred while uploading the image to S3.', 'error')
+            return render_template('edit_location.html', location=location, location_id=location_id)
+
 
         location.name = name
         location.address = address
         location.rating = int(rating)
-        location.image = filename
+        location.image = image_url
         location.latitude = latitude
         location.longitude = longitude
 
@@ -94,13 +125,12 @@ def edit_location(location_id):
 def delete_location(location_id):
     location = Location.query.get_or_404(location_id)
     if location:
-        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], location.image))
         db.session.delete(location)
         db.session.commit()
         flash('Lokalizacja została usunięta.', 'success')
     else:
         flash('Lokalizacja nie istnieje.', 'error')
-        return redirect(url_for('index'))
+    return redirect(url_for('index'))
 
 if __name__ == '__main__':
     app.run(debug=True)

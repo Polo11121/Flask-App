@@ -16,6 +16,7 @@ body {
 }
 
 .form-container {
+  position: relative;
   background-color: white;
   padding: 1rem;
   margin-bottom: 1rem;
@@ -53,7 +54,15 @@ body {
   gap: 1rem;
 }
 
+.add-button {
+  width: 129px !important;
+  position: absolute !important;
+  bottom: 16px !important;
+  left: 160px !important;
+}
+
 .delete-button {
+  width: 129px !important;
   background-color: #dc3545 !important;
 }
 

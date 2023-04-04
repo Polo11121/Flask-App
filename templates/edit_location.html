@@ -68,6 +68,7 @@
       name="address"
       value="{{ location.address }}"
       required
+      readonly
     /><br />
     <div id="map" style="width: 100%; height: 300px"></div>
     <input
@@ -96,21 +97,16 @@
     <label for="image">Zdjęcie:</label>
     <input type="file" id="image" name="image" accept="image/*" /><br />
     <p>Obecne zdjęcie:</p>
-    <img
-      src="{{ url_for('static', filename='uploads/' + location.image) }}"
-      alt="{{ location.name }}"
-      width="100"
-    />
+    <img src="{{ location.image }}" alt="{{ location.name }}" width="100" />
     <br />
-    <div style="buttons">
-      <form
-        action="{{ url_for('delete_location', location_id=location_id) }}"
-        method="POST"
-      >
-        <input class="delete-button" type="submit" value="Usuń lokalizację" />
-      </form>
-      <input type="submit" value="Zapisz zmiany" />
-    </div>
+
+    <input class="add-button" type="submit" value="Zapisz zmiany" />
+  </form>
+  <form
+    action="{{ url_for('delete_location', location_id=location_id) }}"
+    method="POST"
+  >
+    <input class="delete-button" type="submit" value="Usuń lokalizację" />
   </form>
 </div>
 <p>
