@@ -123,7 +123,7 @@ def edit_location(location_id):
 
         return redirect(url_for('location_details', location_id=location_id))
 
-    return render_template('edit_location.html', location=location, location_id=location_id,)
+    return render_template('edit_location.html', location=location, location_id=location_id,GOOGLE_MAPS_API_KEY=GOOGLE_MAPS_API_KEY)
 
 @app.route('/delete_location/<int:location_id>', methods=['POST'])
 def delete_location(location_id):
