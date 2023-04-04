@@ -104,11 +104,13 @@ def edit_location(location_id):
         longitude = float(request.form['longitude'])
         filename = secure_filename(image.filename)
 
-        image_url = upload_to_s3(image, os.environ.get('BUCKET_NAME'), filename)
-        if not image_url:
-            flash('An error occurred while uploading the image to S3.', 'error')
-            return render_template('edit_location.html', location=location, location_id=location_id,GOOGLE_MAPS_API_KEY=GOOGLE_MAPS_API_KEY)
-
+        if image:
+            image_url = upload_to_s3(image, os.environ.get('BUCKET_NAME'), filename)
+            if not image_url:
+                flash('An error occurred while uploading the image to S3.', 'error')
+                return render_template('edit_location.html', location=location, location_id=location_id,GOOGLE_MAPS_API_KEY=GOOGLE_MAPS_API_KEY)
+        else:
+            image_url = location.image
 
         location.name = name
         location.address = address
